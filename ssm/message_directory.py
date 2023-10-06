@@ -45,8 +45,7 @@ class MessageDirectory(object):
         return "%s" % name
 
     def count(self):
-        """
-        Return the number of elements in the queue.
+        """Return the number of elements in the queue.
 
         Regardless of their state.
         """
@@ -63,8 +62,7 @@ class MessageDirectory(object):
         return True
 
     def purge(self):
-        """
-        Do nothing, as there are no old/intermediate directories to purge.
+        """Do nothing, as there are no old/intermediate directories to purge.
 
         Only included to preserve dirq interface.
         """
@@ -75,8 +73,7 @@ class MessageDirectory(object):
         os.unlink("%s/%s" % (self.directory_path, name))
 
     def _get_messages(self, sort_by_mtime=False):
-        """
-        Get the messages stored in this MessageDirectory.
+        """Get the messages stored in this MessageDirectory.
 
         if sort_by_mtime is set to True, the returned list is guaranteed to be
         in increasing order of modification time.

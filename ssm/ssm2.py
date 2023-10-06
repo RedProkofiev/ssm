@@ -467,8 +467,7 @@ class Ssm2(stomp.ConnectionListener):
         return self._outq.count() > 0
 
     def send_all(self):
-        """
-        Send all the messages in the outgoing queue.
+        """Send all the messages in the outgoing queue.
 
         Either via STOMP or HTTPS (to an Argo Message Broker).
         """
