@@ -5,45 +5,37 @@
 # @Author: Nicholas Whyatt (RedProkofiev@github.com)
 
 set -e
-# set -eu
 
 usage() { 
-    echo "Usage: $0 (deb | rpm) <version> <iteration> [options]"
+    echo "Usage: $0 (deb | rpm) <version> <iteration> <python_root_dir> [options]"
     echo -e "Build script for Apel-SSM.\n"
     echo "  -h                    Displays help."
-    echo "  -p <python_path>      Path to python folder you want to use.  No argument uses path default, attempts Python3."
     echo "  -s <source_dir>       Directory of source files.  Defaults to /debbuild/source or SOME RPM DIR." 
     echo -e "  -b <build_dir>        Directory of build files.  Defaults to /debbuild/build or SOME RPM DIR.\n" 1>&2;
     exit 1; 
 }
 
-PACK_TYPE=$1 | tr '[:upper:]' '[:lower:]'
-VERSION=$2
-ITERATION=$3
+# cheap python hack!
+# if ! python3 -c 'import sys; assert sys.version_info >= (3,6)' > /dev/null; then
+#     export PYTHON_VERSION=`python -c 'import sys; version=sys.version_info[:3]; print("{0}.{1}".format(*version))'
+# elif ! python2 -c 'import sys; assert sys.version_info >= (3,6)' > /dev/null; then
 
-# TODO: Replace rpm directories with their sensible equivalents
-if [$PACK_TYPE = "deb"]; then 
-    SOURCE_DIR=~/debbuild/source
-    BUILD_DIR=~/debbuild/build
-elif [$PACK_TYPE = "rpm"]; then
-    SOURCE_DIR=~/something/rpm
-    BUILD_DIR=~/somethingalso/rpm
-else
-    echo "$0 currently only supports 'deb' and 'rpm' packages."
-    usage;
-fi
+SOURCE_ASSIGNED=0
+BUILD_ASSIGNED=0
 
-while getopts "h:p:s:b" o; do
+# Configurable options
+while getopts ":hs:b:" o; do
     case "${o}" in
-        h)  usage;
-            ;;
-        p)  p=${OPTARG}
+        h)  echo "SSM Help"
+            usage;
             ;;
         s)  s=${OPTARG}
-            SOURCE_DIR=~/something/rpm
+            SOURCE_DIR=$s
+            SOURCE_ASSIGNED=1
             ;;
         b)  b=${OPTARG}
-            BUILD_DIR=~/something/rpm
+            BUILD_DIR=$b
+            BUILD_ASSIGNED=1
             ;;
         *)  usage;
             ;;
@@ -51,13 +43,44 @@ while getopts "h:p:s:b" o; do
 done
 shift $((OPTIND-1))
 
-# if [ -z "${s}" ] || [ -z "${p}" ]; then
-#     usage
-# fi
+# Check how any arguments there are
+if [ "$#" -ne 4 ]; then
+    echo "Expected 4 arguments, $# given."
+    usage;
+fi
 
-# VERSION=$1
-# ITERATION=$2
-# PYTHON_VERSION=$3
+PACK_TYPE=$1
+VERSION=$2
+ITERATION=$3
+PYTHON_ROOT_DIR=$4 # i.e. /usr/lib/python3.6
+
+# TODO: Replace rpm directories with their sensible equivalents
+# It ain't pretty, but it is readable and it gets the job done
+# LIB_EXTENSION is the install dir for python lib files, and is system dependent
+if [[ "$PACK_TYPE" = "deb" ]]; then 
+    LIB_EXTENSION="/dist-packages"
+    if [[ "$SOURCE_ASSIGNED" = 0 ]]; then
+        SOURCE_DIR=~/debbuild/source
+    fi
+    if [[ "$BUILD_ASSIGNED" = 0 ]]; then
+        BUILD_DIR=~/debbuild/build
+    fi
+elif [[ "$PACK_TYPE" = "rpm" ]]; then
+    LIB_EXTENSION="/site-packages"
+    if [[ "$SOURCE_ASSIGNED" = 0 ]]; then
+        SOURCE_DIR=~/something/rpm
+    fi
+    if [[ "$BUILD_ASSIGNED" = 0 ]]; then
+        BUILD_DIR=~/somethingalso/rpm
+    fi
+else # If package type is neither deb nor rpm, show an error message and exit
+    echo "$0 currently only supports 'deb' and 'rpm' packages."
+    usage;
+fi
+
+echo $LIB_EXTENSION
+echo $SOURCE_DIR
+echo $BUILD_DIR
 
 # # Create SSM and DEB dir (if not present)
 # mkdir -p $SOURCE_DIR
@@ -68,7 +91,7 @@ shift $((OPTIND-1))
 # rm -rf $BUILD_DIR/*
 
 # # Get and extract the source
-# TAR_FILE=${TAG}.tar.gz
+# TAR_FILE=${VERSION}-${ITERATION}.tar.gz
 # TAR_URL=https://github.com/apel/ssm/archive/$TAR_FILE
 # wget --no-check-certificate $TAR_URL -O $TAR_FILE
 # tar xvf $TAR_FILE -C $SOURCE_DIR
