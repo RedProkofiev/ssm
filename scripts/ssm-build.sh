@@ -78,6 +78,7 @@ else # If package type is neither deb nor rpm, show an error message and exit
     usage;
 fi
 
+# Testing
 echo $LIB_EXTENSION
 echo $SOURCE_DIR
 echo $BUILD_DIR
@@ -96,3 +97,10 @@ echo $BUILD_DIR
 # wget --no-check-certificate $TAR_URL -O $TAR_FILE
 # tar xvf $TAR_FILE -C $SOURCE_DIR
 # rm -f $TAR_FILE
+
+# Get specific python version
+# Main distinction is 2 vs 3 but also check for 3.5 or under or under 2.7
+
+PY_VERSION=$(basename $PYTHON_ROOT_DIR)
+PY_NUM=${PY_VERSION#python}
+echo $PY_NUM
