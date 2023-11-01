@@ -104,3 +104,17 @@ echo $BUILD_DIR
 PY_VERSION=$(basename $PYTHON_ROOT_DIR)
 PY_NUM=${PY_VERSION#python}
 echo $PY_NUM
+
+# One fpm call for python 2, one for python 3
+# Check for each based on minimum versioning
+# May have to vary by debian and RPM too :/
+# add in commands?
+
+# Create three sections, tack them together, render with eval command
+if (( ${PY_NUM:0:1} == 2 )) &&  (( ${PY_NUM:2:3} < 7 )); then
+    echo "Python version is insufficient, you supplied $PY_NUM when you need 2.7.  Python 2 will be removed in 4.0.0."
+    usage;
+elif (( ${PY_NUM:0:1} == 3 )) &&  (( ${PY_NUM:2:3} < 6 )); then
+    echo "Python version is insufficient, you supplied $PY_NUM when you need above 3.5."
+    usage;
+fi
