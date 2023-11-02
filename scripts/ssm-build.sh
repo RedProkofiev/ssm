@@ -153,6 +153,10 @@ fi
 
 # FPM Version Specific End
 # Change pythoninstall lib?
+# is it the darned changelog?  Changelog source dir may be completely off.s
+# Place changelog in specs.
+
+
 FPM_VERSION="--$PACK_TYPE-changelog $SOURCE_DIR/ssm-$VERSION-$ITERATION/CHANGELOG \
     --python-install-bin /usr/bin \
     --python-install-lib $PYTHON_ROOT_DIR$LIB_EXTENSION \
