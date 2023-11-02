@@ -24,7 +24,7 @@ SOURCE_ASSIGNED=0
 BUILD_ASSIGNED=0
 
 # Configurable options
-while getopts ":hs:b:" o; do
+while getopts ":hs:b:v" o; do
     case "${o}" in
         h)  echo "SSM Help"
             usage;
@@ -36,6 +36,9 @@ while getopts ":hs:b:" o; do
         b)  b=${OPTARG}
             BUILD_DIR=$b
             BUILD_ASSIGNED=1
+            ;;
+        v)  v=${OPTARG}
+            VERBOSE=--verbose
             ;;
         *)  usage;
             ;;
@@ -78,25 +81,22 @@ else # If package type is neither deb nor rpm, show an error message and exit
     usage;
 fi
 
-# Testing
-echo $LIB_EXTENSION
-echo $SOURCE_DIR
-echo $BUILD_DIR
 
-# # Create SSM and DEB dir (if not present)
-# mkdir -p $SOURCE_DIR
-# mkdir -p $BUILD_DIR
+# Directory cleaning and repository management
+# Create SSM and DEB dir (if not present)
+mkdir -p $SOURCE_DIR
+mkdir -p $BUILD_DIR
 
-# # Clean up any previous build
-# rm -rf $SOURCE_DIR/*
-# rm -rf $BUILD_DIR/*
+# Clean up any previous build
+rm -rf $SOURCE_DIR/*
+rm -rf $BUILD_DIR/*
 
-# # Get and extract the source
-# TAR_FILE=${VERSION}-${ITERATION}.tar.gz
-# TAR_URL=https://github.com/apel/ssm/archive/$TAR_FILE
-# wget --no-check-certificate $TAR_URL -O $TAR_FILE
-# tar xvf $TAR_FILE -C $SOURCE_DIR
-# rm -f $TAR_FILE
+# Get and extract the source
+TAR_FILE=${VERSION}-${ITERATION}.tar.gz
+TAR_URL=https://github.com/apel/ssm/archive/$TAR_FILE
+wget --no-check-certificate $TAR_URL -O $TAR_FILE
+tar xvf $TAR_FILE -C $SOURCE_DIR
+rm -f $TAR_FILE
 
 # Get supplied Python version
 PY_VERSION=$(basename $PYTHON_ROOT_DIR)
@@ -111,10 +111,11 @@ FPM_CORE="fpm -s python -t $PACK_TYPE \
     --iteration $ITERATION \
     -m \"Apel Administrators <apel-admins@stfc.ac.uk>\" \
     --description \"Secure Stomp Messenger (SSM).\" \
-    --no-auto-depends \ "
+    --no-auto-depends " \
 
 
-# Python Evaluation
+# Python Evaluation THE SLASHES BETRAY US
+# any slash that's not blue is a TRAITOR
 # Python 2
 if (( ${PY_NUM:0:1} == 2 )) ; then
     if (( ${PY_NUM:2:3} < 7 )) ; then # or version is later than 4.0.0
@@ -129,7 +130,7 @@ if (( ${PY_NUM:0:1} == 2 )) ; then
         --depends python-ldap \
         --depends libssl-dev \
         --depends libsasl2-dev \
-        --depends openssl \ "
+        --depends openssl " \
 
 # Python 3
 elif (( ${PY_NUM:0:1} == 3 )) ; then
@@ -147,7 +148,7 @@ elif (( ${PY_NUM:0:1} == 3 )) ; then
         --depends python-ldap \
         --depends libssl-dev \
         --depends libsasl2-dev \
-        --depends openssl \ "
+        --depends openssl " \
 
 fi
 
@@ -162,9 +163,9 @@ FPM_VERSION="--$PACK_TYPE-changelog $SOURCE_DIR/ssm-$VERSION-$ITERATION/CHANGELO
     $SOURCE_DIR/ssm-$VERSION-$ITERATION/setup.py"
 
 
-BUILD_PACKAGE=${FPM_CORE}${FPM_PYTHON}${FPM_VERSION}
-# eval $BUILD_PACKAGE
+BUILD_PACKAGE=${FPM_CORE}${FPM_PYTHON}${FPM_VERSION}${VERBOSE}
 echo $BUILD_PACKAGE
+eval $BUILD_PACKAGE
 
 
 # fpm -s pleaserun -t $PACK_TYPE \
