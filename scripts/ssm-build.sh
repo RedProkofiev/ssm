@@ -38,7 +38,7 @@ while getopts ":hs:b:v" o; do
             BUILD_ASSIGNED=1
             ;;
         v)  v=${OPTARG}
-            VERBOSE=--verbose
+            VERBOSE="--verbose " \
             ;;
         *)  usage;
             ;;
@@ -71,10 +71,10 @@ if [[ "$PACK_TYPE" = "deb" ]]; then
 elif [[ "$PACK_TYPE" = "rpm" ]]; then
     LIB_EXTENSION="/site-packages"
     if [[ "$SOURCE_ASSIGNED" = 0 ]]; then
-        SOURCE_DIR=~/something/rpm
+        SOURCE_DIR=~/rpmbuild/SOURCES
     fi
     if [[ "$BUILD_ASSIGNED" = 0 ]]; then
-        BUILD_DIR=~/somethingalso/rpm
+        BUILD_DIR=~/rpmbuild/BUILD
     fi
 else # If package type is neither deb nor rpm, show an error message and exit
     echo "$0 currently only supports 'deb' and 'rpm' packages."
@@ -114,8 +114,6 @@ FPM_CORE="fpm -s python -t $PACK_TYPE \
     --no-auto-depends " \
 
 
-# Python Evaluation THE SLASHES BETRAY US
-# any slash that's not blue is a TRAITOR
 # Python 2
 if (( ${PY_NUM:0:1} == 2 )) ; then
     if (( ${PY_NUM:2:3} < 7 )) ; then # or version is later than 4.0.0
@@ -163,7 +161,9 @@ FPM_VERSION="--$PACK_TYPE-changelog $SOURCE_DIR/ssm-$VERSION-$ITERATION/CHANGELO
     $SOURCE_DIR/ssm-$VERSION-$ITERATION/setup.py"
 
 
-BUILD_PACKAGE=${FPM_CORE}${FPM_PYTHON}${FPM_VERSION}${VERBOSE}
+# Spaces betwixt verbose and FPM_VERSION for --rpm-changelog, space here command not found renders fpm_version as sep command
+# probably bash string handling issue, add handled string
+BUILD_PACKAGE=${FPM_CORE}${FPM_PYTHON}${VERBOSE}${FPM_VERSION}
 echo $BUILD_PACKAGE
 eval $BUILD_PACKAGE
 
